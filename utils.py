@@ -3,10 +3,10 @@ from sentence_transformers import SentenceTransformer
 import pinecone
 import openai
 import streamlit as st
-openai.api_key = ""
+openai.api_key = st.secrets["a_key"]
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-pinecone.init(api_key='e6fe16b5-86c0-461d-8efe-5911c598122e', environment='gcp-starter')
+pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter')
 index = pinecone.Index('chatbot')
 
 university = "toronto university"

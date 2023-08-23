@@ -19,9 +19,9 @@ from langchain.chains import LLMChain
 from langchain.llms.openai import OpenAI
 from langchain.requests import TextRequestsWrapper
 from langchain.tools.json.tool import JsonSpec
-openai.api_key = ""
+openai.api_key = st.secrets["a_key"]
 model = SentenceTransformer('all-MiniLM-L6-v2')
-os.environ["OPENAI_API_KEY"] = ""
+os.environ["OPENAI_API_KEY"] = st.secrets["a_key"]
 
 # #####################################################json
 # with open("openai_openapi.yml") as f:
