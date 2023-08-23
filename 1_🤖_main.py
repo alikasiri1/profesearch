@@ -37,7 +37,7 @@ os.environ["OPENAI_API_KEY"] = st.secrets["a_key"]
 
 
 
-pinecone.init(api_key='e6fe16b5-86c0-461d-8efe-5911c598122e', environment='gcp-starter')
+pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter')
 index = pinecone.Index('chatbot')
 
 
@@ -49,7 +49,7 @@ if 'responses' not in st.session_state:
 if 'requests' not in st.session_state:
     st.session_state['requests'] = []
 
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key="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")
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key= st.secrets["a_key"])
 
 if 'buffer_memory' not in st.session_state:
             st.session_state.buffer_memory=ConversationBufferWindowMemory(k=3,return_messages=True)
