@@ -1,4 +1,4 @@
-langchain==0.0.271
+langchain==0.0.272
 openai==0.27.8
 pinecone_client==2.2.2
 PyYAML==6.0.1

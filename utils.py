@@ -24,6 +24,19 @@ def query_refiner(conversation, query):
     )
     return response['choices'][0]['text']
 
+def query_refiner_2(query):
+    response = openai.Completion.create(
+    model="text-davinci-003",
+    prompt=f"""your task is helping a user to find appropriate some {university} professors information like their contacts and reseaches and url_page.formulate a question that would be the most relevant 
+    to provide the user with an answer from a knowledge base.\n\n\nQuery: {query}\n\nRefined Query:""",
+    temperature=0,
+    max_tokens=256,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+    return response['choices'][0]['text']
+
 def find_match(input):
     input_em = model.encode(input).tolist()
     # print("input_em" , input_em)
