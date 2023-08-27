@@ -9,19 +9,20 @@ from langchain.prompts import (
 )
 import streamlit as st
 from streamlit_chat import message
-from utils import *
+
 import os
 import yaml
-# from streamlit_option_menu import option_menu
-# from langchain.agents import create_json_agent, AgentExecutor
-# from langchain.agents.agent_toolkits import JsonToolkit
-# from langchain.chains import LLMChain
-# from langchain.llms.openai import OpenAI
-# from langchain.requests import TextRequestsWrapper
-# from langchain.tools.json.tool import JsonSpec
+from streamlit_option_menu import option_menu
+from langchain.agents import create_json_agent, AgentExecutor
+from langchain.agents.agent_toolkits import JsonToolkit
+from langchain.chains import LLMChain
+from langchain.llms.openai import OpenAI
+from langchain.requests import TextRequestsWrapper
+from langchain.tools.json.tool import JsonSpec
 import streamlit.components.v1 as com
 
 st.set_page_config(page_title="profesearch", page_icon=None, layout="wide", initial_sidebar_state="collapsed", menu_items=None)
+from utils import *
 # @st.cache_resource  # 👈 Add the caching decorator
 
 # st.image(image="Toronto_1.png",use_column_width="auto")
@@ -223,29 +224,21 @@ Connecting Graduate Students with Professors
 # with open('main.html') as mainHTML:
 #     st.markdown(style.read() , unsafe_allow_html=True)
 
-@st.cache_resource
-def load_model():
-    return SentenceTransformer('all-MiniLM-L6-v2')
-
-@st.cache_resource
-def pincone_intit():
-    pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter')
-    return pinecone.Index('chatbot')
-
-openai.api_key = st.secrets["a_key"]
+# openai.api_key = st.secrets["a_key"]
 model = load_model()
-os.environ["OPENAI_API_KEY"] = st.secrets["a_key"]
+# os.environ["OPENAI_API_KEY"] = st.secrets["a_key"]
  
      
 # # #####################################################json
-# # with open("openai_openapi.yml") as f:
-# #     data = yaml.load(f, Loader=yaml.FullLoader)
-# # json_spec = JsonSpec(dict_=data, max_value_length=4000)
-# # json_toolkit = JsonToolkit(spec=json_spec)
+# with open("simpl_inf.yml") as f:
+#     data = yaml.load(f, Loader=yaml.FullLoader)
+# json_spec = JsonSpec(dict_=data, max_value_length=400)
+# json_toolkit = JsonToolkit(spec=json_spec)
 
-# # json_agent_executor = create_json_agent(
-# #     llm=OpenAI(temperature=0), toolkit=json_toolkit, verbose=True
-# # )
+# json_agent_executor = create_json_agent(
+#     llm=ChatOpenAI(model_name="text-babbage-001", openai_api_key= st.secrets["a_key"],max_tokens=100) #text-babbage-002
+#     , toolkit=json_toolkit, verbose=True
+# )
 
 # # ######################################################
 
@@ -267,7 +260,7 @@ index = pincone_intit()
 # if 'requests' not in st.session_state:
 #     st.session_state['requests'] = []
 
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key= st.secrets["a_key"])
+# llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key= st.secrets["a_key"])
 
 # if 'buffer_memory' not in st.session_state:
 #             st.session_state.buffer_memory=ConversationBufferWindowMemory(k=3,return_messages=True)
@@ -292,9 +285,15 @@ def res(input):
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <div class="card">
     <div class="card-body">
-    <p class="card-text">{input}</p>
+    <p>{input}</p>
     </div>
     </div>
+    <script>
+     var paragraf = document.getElementsByTagName("p")
+     paragraf.addClass("card-text")
+     var h5_ = document.getElementsByTagName("h5")
+     h5_.addClass("card-title")
+    </script>
 """
 
 query = st.text_input("Query: ", key="input" )
@@ -304,30 +303,40 @@ if query:
         st.write(refined_query)
         input_em = model.encode(refined_query).tolist()
         # input_em = model.encode(query).tolist()
-        result = index.query(input_em, top_k=4, includeMetadata=True)
+        result = index.query(input_em, top_k=6, includeMetadata=True)
+        print("result" , result)
 # #############################################################################################################cleaning data
-        for i in range(0 , len(result['matches'])):
-            result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("\\n" ," ")
-            # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("https://" ,"")
-            result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("page_url" ,"url")
-            result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(", " ,",")
-            result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(": " ,":")
-            result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(". " ,".")
+        # for i in range(0 , len(result['matches'])):
+        #     # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("\\n" ," ")
+        #     # # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("https://" ,"")
+        #     # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace("page_url" ,"url")
+        #     # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(", " ,",")
+        #     # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(": " ,":")
+        #     # result['matches'][i]['metadata']['text'] = result['matches'][i]['metadata']['text'].replace(". " ,".")
 
 
-        if "{" in result['matches'][i]['metadata']['text']:
-            if len(result['matches'][i]['metadata']['text'].split("{" , 1)[1]) > len(result['matches'][i]['metadata']['text'].split("{" , 1)[0]):
-                result['matches'][i]['metadata']['text'] = "{"+result['matches'][i]['metadata']['text'].split("{" , 1)[1]
-            else:
-                result['matches'][i]['metadata']['text'] = "{"+result['matches'][i]['metadata']['text'].split("{" , 1)[0]
+        #     if "{" in result['matches'][i]['metadata']['text']:
+        #         if len(result['matches'][i]['metadata']['text'].split("{" , 1)[1]) > len(result['matches'][i]['metadata']['text'].split("{" , 1)[0]):
+        #             result['matches'][i]['metadata']['text'] = "{"+result['matches'][i]['metadata']['text'].split("{" , 1)[1]
+        #         else:
+        #             result['matches'][i]['metadata']['text'] = "{"+result['matches'][i]['metadata']['text'].split("{" , 1)[0]
+            
 # ##########################################################################################################################
-        context = result['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text']
+        context = result['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text'] 
         context2 =result['matches'][2]['metadata']['text']+"\n"+result['matches'][3]['metadata']['text']
-        # st.markdown(res(context+context2) , unsafe_allow_html=True)
-        prompt = f"""your task is helping a user to find appropriate professor . just anser based on provided Text.do not add  anything other than provided Text:\n```{context}``` \n\nuser request:\n ```{refined_query}```"""
+        context3 =result['matches'][4]['metadata']['text']+"\n"+result['matches'][5]['metadata']['text']
+        # print("context" , context)
+        # response_json = json_agent_executor.run(query ) # json
+        # print("json: ",response_json)
+        # babbage_promt = f"""answer user request based Text.\nText:\n```{context2 + context3}``` \nuser request:```{refined_query}```"""
+
+        prompt = f"""your task is helping a user to find appropriate a list of professors interested in the specified research area . just anser based Text.\n\n Text:\n```{context}``` \n\n user request:\n ```{refined_query}```"""
+        # babbage_response = get_completion(babbage_promt)
         response = get_completion(prompt)
-        print(response)
+        #print(response)
         st.markdown(res(response.choices[0].message["content"]), unsafe_allow_html=True)
+        # st.markdown(res(context + "\n" + context2 + "\n" + context3), unsafe_allow_html=True)
+        # st.markdown(res(response_json), unsafe_allow_html=True)
 
 
 # # container for chat history
