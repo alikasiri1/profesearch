@@ -35,7 +35,7 @@ def query_refiner(conversation, query):
     return response['choices'][0]['text']
 
 def query_refiner_2(query):
-    prompt=f"""your task is helping a user to find appropriate some {university} professors information like their contacts and researches and url.formulate a question that would be the most relevant to provide the user .\n\nuser request: {query}\n\nRefined Query:"""
+    prompt=f"""your task is helping a user to find appropriate some {university} professors information like their 'contacts' and 'researches' and 'url'.formulate a question that would be the most relevant to provide the user .\n\nuser request: {query}\n\nRefined Query:"""
     messages = [{"role": "user", "content": prompt}]
     response = openai.ChatCompletion.create(
     model= "gpt-3.5-turbo", #"text-davinci-003", curie 
