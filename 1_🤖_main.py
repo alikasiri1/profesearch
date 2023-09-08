@@ -22,7 +22,7 @@ import streamlit as st
 import streamlit.components.v1 as com
 
 st.set_page_config(page_title="profesearch", page_icon=None, layout="wide", initial_sidebar_state="collapsed", menu_items=None)
-from utils import *
+
 # @st.cache_resource  # 👈 Add the caching decorator
 
 # st.image(image="Toronto_1.png",use_column_width="auto")
@@ -225,7 +225,9 @@ Connecting Graduate Students with Professors
 #     st.markdown(style.read() , unsafe_allow_html=True)
 
 # openai.api_key = st.secrets["a_key"]
-model = load_model()
+
+# model = load_model()
+
 # os.environ["OPENAI_API_KEY"] = st.secrets["a_key"]
  
      
@@ -246,7 +248,8 @@ model = load_model()
 
 # # pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter')
 # # index = pinecone.Index('chatbot')
-index = pincone_intit()
+
+# index = pincone_intit_768()
 
 
 
@@ -295,15 +298,17 @@ def res(input):
      h5_.addClass("card-title")
     </script>
 """
-
+from utils import *
 query = st.text_input("Query: ", key="input" )
 if query:
     with st.spinner("typing..."):
-        refined_query = query_refiner_2(query) # convert user query to a nice query
-        st.write(refined_query)
-        input_em = model.encode(refined_query).tolist()
+        
+        # refined_query = query_refiner_2(query) # convert user query to a nice query
+        # st.write(refined_query)
+        # input_em = model.encode(refined_query).tolist()
         # input_em = model.encode(query).tolist()
-        result = index.query(input_em, top_k=6, includeMetadata=True)
+        # result = find_match(refined_query)#index.query(input_em, top_k=6, includeMetadata=True)
+        result = find_match(query)
         print("result" , result)
 # #############################################################################################################cleaning data
         # for i in range(0 , len(result['matches'])):
@@ -322,21 +327,22 @@ if query:
         #             result['matches'][i]['metadata']['text'] = "{"+result['matches'][i]['metadata']['text'].split("{" , 1)[0]
             
 # ##########################################################################################################################
-        context = result['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text'] 
-        context2 =result['matches'][2]['metadata']['text']+"\n"+result['matches'][3]['metadata']['text']
-        context3 =result['matches'][4]['metadata']['text']+"\n"+result['matches'][5]['metadata']['text']
+        # context = result['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text'] 
+        # context2 =result['matches'][2]['metadata']['text']+"\n"+result['matches'][3]['metadata']['text']
+        # context3 =result['matches'][4]['metadata']['text']+"\n"+result['matches'][5]['metadata']['text']
         # print("context" , context)
         # response_json = json_agent_executor.run(query ) # json
         # print("json: ",response_json)
         # babbage_promt = f"""answer user request based Text.\nText:\n```{context2 + context3}``` \nuser request:```{refined_query}```"""
 
-        prompt = f"""your task is helping a user to find appropriate a list of professors interested in the specified research area . just anser based Text.\n\n Text:\n```{context}``` \n\n user request:\n ```{refined_query}```"""
+        # prompt = f"""your task is helping a user to find appropriate a list of professors interested in the specified research area . just anser based Text.\n\n Text:\n```{context}``` \n\n user request:\n ```{refined_query}```"""
         # babbage_response = get_completion(babbage_promt)
-        response = get_completion(prompt)
+        # response = get_completion(prompt)
         #print(response)
-        st.markdown(res(response.choices[0].message["content"]), unsafe_allow_html=True)
+        # st.markdown(res(response.choices[0].message["content"]), unsafe_allow_html=True)
         # st.markdown(res(context + "\n" + context2 + "\n" + context3), unsafe_allow_html=True)
         # st.markdown(res(response_json), unsafe_allow_html=True)
+        st.markdown(res(result), unsafe_allow_html=True)
 
 
 # # container for chat history
