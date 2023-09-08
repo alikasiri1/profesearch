@@ -5,6 +5,7 @@ import pinecone
 import openai
 import streamlit as st
 openai.api_key = st.secrets["a_key"]
+
 # st.cache_resource.clear()
 # @st.cache_resource
 # def load_model():
@@ -23,10 +24,10 @@ def load_model_3():
 def load_model_4():
     return SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
-# @st.cache_resource
-# def pincone_intit_768():
-#     pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter') #pinecone_key="e6fe16b5-86c0-461d-8efe-5911c598122e"
-#     return pinecone.Index('chatbot')
+@st.cache_resource
+def pincone_intit_768():
+    pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter') #pinecone_key="e6fe16b5-86c0-461d-8efe-5911c598122e"
+    return pinecone.Index('chatbot')
 
 @st.cache_resource
 def pincone_intit_384():
@@ -46,7 +47,7 @@ model_1 = load_model_1()
 model_2 = load_model_2()
 model_3 = load_model_3()
 j_model = load_model_4()
-# index = pincone_intit_768()
+index = pincone_intit_768()
 index_2 = pincone_intit_384()
 
 tokenizer = gpt2()
@@ -92,8 +93,8 @@ def find_match(input):
     input_em = model_2.encode(input).tolist()
     result_2 = index_2.query(input_em, top_k=10, includeMetadata=True)
 
-    # input_em = model_3.encode(input).tolist()
-    # result_3 = index.query(input_em, top_k=10, includeMetadata=True)
+    input_em = model_3.encode(input).tolist()
+    result_3 = index.query(input_em, top_k=10, includeMetadata=True)
     result_list = []
     query_embedding = j_model.encode(input)
     for resul in result_2["matches"]:
@@ -102,15 +103,24 @@ def find_match(input):
         dic["text"] = resul["metadata"]["text"]
         dic["score"] = float(str(util.cos_sim(query_embedding, passage_embedding)[0][0]).split("(")[1].split(")")[0])
         result_list.append(dic)
+
     for resul in result_1["matches"]:
         dic = {}
         passage_embedding = j_model.encode(resul["metadata"]["text"])
         dic["text"] = resul["metadata"]["text"]
         dic["score"] = float(str(util.cos_sim(query_embedding, passage_embedding)[0][0]).split("(")[1].split(")")[0])
         result_list.append(dic)
+
+    for resul in result_3["matches"]:
+        dic = {}
+        passage_embedding = j_model.encode(resul["metadata"]["text"])
+        dic["text"] = resul["metadata"]["text"]
+        dic["score"] = float(str(util.cos_sim(query_embedding, passage_embedding)[0][0]).split("(")[1].split(")")[0])
+        result_list.append(dic)
+
     result_list =  sorted(result_list, key=lambda d: d['score'] , reverse=True)
     result = ""
-    for j in range(16):
+    for j in range(20):
         result = result + result_list[j]["text"] + ";;"
 
     i = 1
