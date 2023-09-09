@@ -1,15 +1,16 @@
 
-from sentence_transformers import SentenceTransformer, util #pinecone_key_2="1ea8f5bc-2aeb-4d98-aaa1-325acd7258a0"
+from sentence_transformers import SentenceTransformer, util 
 from transformers import GPT2TokenizerFast
 import pinecone
 import openai
 import streamlit as st
 openai.api_key = st.secrets["a_key"]
 
-# st.cache_resource.clear()
-# @st.cache_resource
-# def load_model():
-#     return SentenceTransformer('all-mpnet-base-v2') #all-MiniLM-L6-v2
+
+@st.cache_resource
+def load_model():
+    return SentenceTransformer('all-mpnet-base-v2') #all-MiniLM-L6-v2
+
 @st.cache_resource
 def load_model_1():
     return SentenceTransformer('all-MiniLM-L12-v1')
@@ -26,13 +27,12 @@ def load_model_4():
 
 @st.cache_resource
 def pincone_intit_768():
-    pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter') #pinecone_key="e6fe16b5-86c0-461d-8efe-5911c598122e"
+    pinecone.init(api_key=st.secrets["pinecone_key"], environment='gcp-starter') 
     return pinecone.Index('chatbot')
 
 @st.cache_resource
 def pincone_intit_384():
-    pinecone.init(api_key=st.secrets["pinecone_key_2"], environment='gcp-starter') #pinecone_key_2="1ea8f5bc-2aeb-4d98-aaa1-325acd7258a0"
-    print(pinecone.list_indexes())
+    pinecone.init(api_key=st.secrets["pinecone_key_2"], environment='gcp-starter') 
     return pinecone.Index('chatbot')
 
 @st.cache_resource
@@ -42,7 +42,7 @@ def gpt2():
 
 
 
-# model = load_model()
+model = load_model()
 model_1 = load_model_1()
 model_2 = load_model_2()
 model_3 = load_model_3()
@@ -84,8 +84,8 @@ def query_refiner_2(query):
     return response.choices[0].message["content"] 
 
 def find_match(input):
-    # input_em = model.encode(input).tolist()
-    # result = index.query(input_em, top_k=10, includeMetadata=True)
+    input_em = model.encode(input).tolist()
+    result = index.query(input_em, top_k=10, includeMetadata=True)
 
     input_em = model_1.encode(input).tolist()
     result_1 = index_2.query(input_em, top_k=10, includeMetadata=True)
@@ -95,6 +95,7 @@ def find_match(input):
 
     input_em = model_3.encode(input).tolist()
     result_3 = index.query(input_em, top_k=10, includeMetadata=True)
+
     result_list = []
     query_embedding = j_model.encode(input)
     for resul in result_2["matches"]:
@@ -117,18 +118,34 @@ def find_match(input):
         dic["text"] = resul["metadata"]["text"]
         dic["score"] = float(str(util.cos_sim(query_embedding, passage_embedding)[0][0]).split("(")[1].split(")")[0])
         result_list.append(dic)
+    for resul in result["matches"]:
+        dic = {}
+        passage_embedding = j_model.encode(resul["metadata"]["text"])
+        dic["text"] = resul["metadata"]["text"]
+        dic["score"] = float(str(util.cos_sim(query_embedding, passage_embedding)[0][0]).split("(")[1].split(")")[0])
+        result_list.append(dic)
 
     result_list =  sorted(result_list, key=lambda d: d['score'] , reverse=True)
+    
+    result_list2 = []
+    for dic in result_list:
+        print(dic["text"])
+        if dic["text"] not in result_list2:
+            result_list2.append(dic["text"])
+
+    # result_list2 = list(set(result_list2))
+
     result = ""
-    for j in range(20):
-        result = result + result_list[j]["text"] + ";;"
+    for j in range(len(result_list2)):
+        result = result + result_list2[j] + ";;"
 
     i = 1
     while count_tokens("".join(result.split(";;")[:-i])) > 1000:
         i = i + 1
-
+    
     result = "".join(result.split(";;")[:-i])
- 
+    print(result)
+    print(count_tokens(result))
     # print("result" , result)
     return result  #['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text']+"\n"+result['matches'][2]['metadata']['text']+"\n"+result['matches'][3]['metadata']['text'] 
 
